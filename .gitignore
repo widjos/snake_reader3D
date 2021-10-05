@@ -1,7 +1,12 @@
 # Byte-compiled / optimized / DLL files
 __pycache__
+__init__
 *.py[cod]
 
 # Archivos de PLY 
 parser.out
 parsetab.py
+
+#Archivos de prueba
+cd3.go
+entrada.txt
