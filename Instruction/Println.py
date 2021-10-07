@@ -18,6 +18,15 @@ class Println(Instruction):
            self.generator.addPrintf("d",f' int64({tempValue.getValue()})')
         elif tempValue.type == typeExpression.FLOAT:
             self.generator.addPrintf("f",f'float64({tempValue.getValue()})')
+        elif tempValue.type == typeExpression.BOOL:
+            newLabel = self.generator.newLabel()
+            self.generator.addLabel(tempValue.trueLabel)
+            self.generator.callFunc('widPrintTrue')
+            #Instruccion
+            self.generator.addGoto(newLabel)
+            self.generator.addLabel(tempValue.falseLabel)
+            self.generator.callFunc('widPrintFalse')
+            self.generator.addLabel(newLabel)
         else:
             print("Error en el print")
 

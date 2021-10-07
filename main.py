@@ -10,9 +10,7 @@ def main():
     result = parser.parse(input)
     fOut = open("./cd3.go","w")
     fOut.write(result)
-    fOut.close()
-    print("-------------- RESULT ---------")
-    print(result)    
+    fOut.close()  
 
 
 

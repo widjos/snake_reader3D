@@ -15,12 +15,15 @@ class Generator:
         tempCode:str = 'package main\n\n'
         tempCode += "import \"fmt\"\n\n"
 
+        tempCode += self.addPrintFalse()
+        tempCode += self.addPrintTrue()
+
         #obtain the generated code
-        if len(self.tempList) >= 0 :
+        if len(self.tempList) > 0 :
             tempCode = tempCode + "var " + self.getUsedTemps() +" float64"+ "\n\n"
         tempCode += 'func main(){\n\n'
         tempCode += '\n'.join(self.code)
-        tempCode += '\nreturn;\n\n}'
+        tempCode += '\nreturn\n\n}'
 
         return tempCode    
 
@@ -47,14 +50,40 @@ class Generator:
 
     #Println 
     def addPrintf(self , typePrint: str , value:str):
-        self.code.append(f"fmt.Printf(\"%{typePrint}\", {value} );")
+        self.code.append(f" fmt.Printf(\"%{typePrint}\", {value} );")
 
     def addIf(self, left:str , right:str , operator:str, label: str):
-        self.code.append(f'if( {left}  {operator}  {right} ) goto {label} ;')
+        self.code.append(f'if( {left}  {operator}  {right} ) {{ goto {label} }}')
 
     def addGoto(self, label:str):
-        self.code.append(f'goto {label} ;')
+        self.code.append(f' goto {label} ')
 
     #NewLine
     def addNewLine(self):
-        self.code.append(f'fmt.Printf(\"%c\", 10);')   
+        self.code.append(f'fmt.Printf(\"%c\", 10)') 
+
+    def callFunc(self, name:str):
+        self.code.append(f' {name}()')     
+
+    def addPrintFalse(self):
+        return '''
+func widPrintFalse(){ 
+    fmt.Printf("%c",102)
+    fmt.Printf("%c",97)
+    fmt.Printf("%c",108)
+    fmt.Printf("%c",115)
+    fmt.Printf("%c",101)
+    return
+}\n\n'''
+
+    def addPrintTrue(self):
+        return '''
+func widPrintTrue(){ 
+    fmt.Printf("%c",116)
+    fmt.Printf("%c",114)
+    fmt.Printf("%c",117)
+    fmt.Printf("%c",101)
+    return
+}\n\n'''
+   
+       

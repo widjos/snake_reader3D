@@ -5,10 +5,12 @@ from Enum.typeExpression import typeExpression
 
 class NumberVal(Expression):
 
-    def __init__(self, type:typeExpression , value) -> None:
+    def __init__(self, type:typeExpression , value, row, column) -> None:
         super().__init__()
         self.type = type
         self.value = value
+        self.row = row
+        self.column = column
 
 
     def compile(self, environement: Environment) -> Value:

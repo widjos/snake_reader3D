@@ -5,6 +5,8 @@ class Value:
         self.value = value
         self.isTemp = isTemp
         self.type = type
+        self.trueLabel = ""
+        self.falseLabel = ""
 
     def getValue(self):
         return self.value    

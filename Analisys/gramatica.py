@@ -11,6 +11,9 @@ tokens = [
     #operators
     'MAS',
     'MENOS',
+    'DIV',
+    'MULT',
+    'IGUAL',
     #DATOS
     'DECIMAL',
     'ENTERO',
@@ -22,6 +25,9 @@ t_PARIZQ = r'\('
 t_PARDER = r'\)'
 t_MAS    = r'\+'
 t_MENOS  = r'-'
+t_DIV  = r'/'
+t_MULT  = r'\*'
+t_IGUAL = r'=='
 
 def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
@@ -69,6 +75,9 @@ from Instruction.Println import Println
 from Environment.Environment import Environment
 from Expression.Arithmetic.Plus import Plus
 from Expression.Arithmetic.Minus import Minus
+from Expression.Arithmetic.Mult import Mult
+from Expression.Arithmetic.Div import Div
+from Expression.Relational.Equal import Equal
 
 import ply.lex as lex
 lexer = lex.lex()
@@ -77,6 +86,8 @@ lexer = lex.lex()
 
 precedence = (
     ('left','MAS','MENOS'),
+    ('left','MULT','DIV'),
+    ('left','IGUAL')
 )
 
 
@@ -112,20 +123,28 @@ def p_println(t):
     t[0] = Println(t[3])
 
 
-def p_expresion_binaria(t):
+def p_expresion(t):
     '''expresion : expresion MAS expresion 
                  | expresion MENOS expresion
+                 | expresion MULT expresion
+                 | expresion DIV expresion
+                 | expresion IGUAL expresion
     '''
     if   t[2] == '+' : t[0] = Plus(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
     elif t[2] == '-' : t[0] = Minus(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif t[2] == '*' : t[0] = Mult(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif t[2] == '/' : t[0] = Div(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif t[2] == '==' : t[0] = Equal(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+
 
 def p_expresion_decimal(t):
     'expresion : DECIMAL'
-    t[0] = NumberVal(typeExpression.FLOAT,t[1])
+    t[0] = NumberVal(typeExpression.FLOAT,t[1], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
 
 def p_expresion_integer(t):
     'expresion : ENTERO'
-    t[0] = NumberVal(typeExpression.INT, t[1])
+    t[0] = NumberVal(typeExpression.INT, t[1], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
 
 
 #------------------- Fin de ------------
