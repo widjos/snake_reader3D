@@ -3,7 +3,7 @@ from Enum.typeExpression import typeExpression
 from Environment.Environment import Environment
 from Environment.Value import Value
 
-class Equal(Expression):
+class GThan(Expression):
 
     def __init__(self, left: Expression, right: Expression,row, column) -> None:
         super().__init__()
@@ -30,12 +30,10 @@ class Equal(Expression):
                 if self.falseLabel == "":
                     self.falseLabel = self.generator.newLabel()
                     
-                self.generator.addComment("Equal expression")
-                self.generator.addIf(leftVal.value, rightVal.value, "==" ,self.trueLabel)
+                self.generator.addComment("Greather Than expression")
+                self.generator.addIf(leftVal.value, rightVal.value, ">" ,self.trueLabel)
                 self.generator.addGoto(self.falseLabel)
 
                 newValue.trueLabel = self.trueLabel
                 newValue.falseLabel = self.falseLabel
                 return newValue
-
-

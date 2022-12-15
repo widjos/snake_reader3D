@@ -15,7 +15,7 @@ class Println(Instruction):
 
         tempValue: Value = self.exp.compile(environment)
         if tempValue.type == typeExpression.INT:
-           self.generator.addPrintf("d",f' int64({tempValue.getValue()})')
+           self.generator.addPrintf("d",f' int64({tempValue.getValue()})')        
         elif tempValue.type == typeExpression.FLOAT:
             self.generator.addPrintf("f",f'float64({tempValue.getValue()})')
         elif tempValue.type == typeExpression.BOOL:
@@ -27,9 +27,11 @@ class Println(Instruction):
             self.generator.addLabel(tempValue.falseLabel)
             self.generator.callFunc('widPrintFalse')
             self.generator.addLabel(newLabel)
+            
         else:
             print("Error en el print")
 
 
-        self.generator.addNewLine()        
+        self.generator.addNewLine()
+        self.generator.addSpaceInCode()        
 
