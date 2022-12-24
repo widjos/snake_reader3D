@@ -6,7 +6,7 @@ class typeExpression(enum.Enum):
     STRING = 2 
     BOOL = 4
     NULL = 5
-    LIST = 6
+    ARRAY = 6
     STRUCT = 7
     UNDEFINED = 8
 

@@ -15,10 +15,16 @@ class Environment:
     def __init__(self, father) -> None:
         self.father = father
         self.variable = {}
+        self.structs = {}
         self.size = 0
-
-        if father != None:
-            self.size = father.size
+        self.breakLbl = ''
+        self.continueLbl = ''
+        self.returnLbl = ''
+        if father is not None:
+            self.size = self.father.size
+            self.breakLbl = self.father.breakLbl
+            self.continueLbl  = self.father.continueLbl
+            self.returnLbl = self.father.returnLbl
 
 
     def saveVariable(self , id: str , type: typeExpression):

@@ -21,7 +21,6 @@ class VariableCall(Expression):
         if retSym.type != typeExpression.BOOL:
             return Value(newTemp, True, retSym.type)
         else:
-            print("-----> aqui")
             val = Value("", False, typeExpression.BOOL)
 
             if self.trueLabel == "" :

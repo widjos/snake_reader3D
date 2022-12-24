@@ -22,8 +22,12 @@ reservadas = {
     "continue"  : "CONTINUE",
     "return"    : "RETURN",
     "end"       : "END",
-    "true"      : "TRUE",
-    "false"     : "FALSE"
+    "True"      : "TRUE",
+    "False"     : "FALSE",
+    "or"        : "OR",
+    "and"       : "AND",
+    "not"       : "NOT",
+    "end"       : "END"
 }
 
 tokens = [
@@ -144,6 +148,7 @@ def t_error(t):
 from Environment.Value import Value
 from Expression.Arithmetic.Module import Module
 from Expression.Arithmetic.Power import Power
+from Expression.Primitive.Literal import Literal
 from Expression.Primitive.VariableCall import VariableCall
 from Expression.Relational.GEThan import GEqualThan
 from Expression.Relational.GThan import GThan
@@ -155,6 +160,9 @@ from Enum.typeExpression import typeExpression
 from Expression.Primitive.NumberVal import NumberVal
 from Instruction.Cycles.While import While
 from Instruction.Declaration import Declaration
+from Instruction.Natives.Int import Len
+from Instruction.Natives.Lower import Lower
+from Instruction.Natives.Upper import Upper
 from Instruction.Println import Println
 from Environment.Environment import Environment
 from Expression.Arithmetic.Plus import Plus
@@ -162,8 +170,12 @@ from Expression.Arithmetic.Minus import Minus
 from Expression.Arithmetic.Mult import Mult
 from Expression.Arithmetic.Div import Div
 from Expression.Relational.Equal import Equal
+from Expression.Logic.Logic import Logic
+from Instruction.Control.If import If
 
 import ply.lex as lex
+
+from Instruction.Statement import Statement
 lexer = lex.lex()
 
 # ---------------------------------------- PARSER ------------------------
@@ -176,9 +188,8 @@ precedence = (
     ('left','MAS','MENOS'),
     ('left','MULT','DIV', 'MODULO'),
     ('left','POTENCIA'),
-    ('left','IGUAL')
+    ('right','UMENOS')
 )
-
 
 
 def p_inicio(t):
@@ -219,6 +230,7 @@ def p_instruccion(t):
                     | asignacion LINEANUEVA
                     | declaracion LINEANUEVA
                     | while LINEANUEVA
+                    | ifState LINEANUEVA
                     | nativas LINEANUEVA
     ''' 
     t[0] = t[1]
@@ -229,7 +241,35 @@ def p_println(t):
 
 def p_while(t):
     'while : WHILE expression l_instruccion'
-    t[0] = While(t[2], t[3]);   
+    t[0] = While(t[2], t[3])
+
+def p_if(t):
+    '''ifState : IF expression DOSPT statement  END
+          | IF expression DOSPT statement ELSE DOSPT statement  END
+          | IF expression DOSPT statement elseIfList  END
+    '''
+    if len(t) == 6:
+        t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif len(t) == 9:
+        t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer),t[7])  
+    elif len(t) == 7:
+        t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer),t[5])   
+     
+
+
+
+def p_elseif_list(t):
+    '''elseIfList     : ELIF expression DOSPT statement
+                        | ELIF expression DOSPT statement ELSE DOSPT statement
+                        | ELIF expression DOSPT statement elseIfList''' 
+    if len(t) == 5:
+        t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif len(t) == 6:
+        t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer),t[5])   
+    elif len(t) == 8:
+        t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer),t[7])   
+
+
 
 def p_expression(t):
     '''expression : expression MAS expression 
@@ -246,6 +286,7 @@ def p_expression(t):
                  | expression MAYIGUALQUE expression
                  | expression OR expression
                  | expression AND expression
+                 | NOT expression %prec UMENOS
     '''
     if   t[2] == '+' : t[0] = Plus(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
     elif t[2] == '-' : t[0] = Minus(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
@@ -259,8 +300,10 @@ def p_expression(t):
     elif t[2] == '<'  : t[0] = LThan(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
     elif t[2] == '<='  : t[0] = LEqualThan(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
     elif t[2] == '>='  : t[0] = GEqualThan(t[1],t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
-
-
+    elif t[2] == 'or'  : t[0] = Logic(t[1],t[3],'OR',t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif t[2] == 'and'  : t[0] = Logic(t[1],t[3],'AND',t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif t[2] == 'not'  : t[0] = Logic(t[2],Literal(typeExpression.BOOL, t[1], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer)),'NOT',t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    
 
 
 def p_expression_decimal(t):
@@ -271,9 +314,29 @@ def p_expression_integer(t):
     'expression : ENTERO'
     t[0] = NumberVal(typeExpression.INT, t[1], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
 
+def p_expression_literal(t):
+    '''expression : TRUE
+                  | FALSE'''
+    t[0] = Literal(typeExpression.BOOL, t[1], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+def p_expression_cadena(t):
+    '''expression : CADENA'''
+    t[0] = Literal(typeExpression.STRING, t[1], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+def p_expression_array(t):
+    '''expression : CORCHETEIZQ exp_list CORCHETEDER'''
+    t[0] = Literal(typeExpression.ARRAY,t[2], t.lexer.lineno, find_column(t.lexer.lexdata,t.lexer))
+
+def p_expression_nat(t):
+    '''expression : nativas'''
+    t[0] = t[1]    
+    
+
 def p_expression_id(t):
     'expression : ID'
     t[0] = VariableCall(t[1])     
+
+          
 
 def p_asignacion(t):
     '''asignacion : ID ASIG expression'''
@@ -285,12 +348,17 @@ def p_declaracion(t):
 
 
 def p_nativas(t):
-    '''nativas          : UPPER PARIZQ expression PARDER
-                        | LOWER PARIZQ expression PARDER
+    '''nativas          : LOWER PARIZQ expression PARDER
+                        | UPPER PARIZQ expression PARDER
                         | STR PARIZQ expression PARDER
                         | FLOAT PARIZQ expression PARDER
                         | LEN PARIZQ expression PARDER
                         '''
+    if   t[1] == 'lower' : t[0] = Lower(t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif   t[1] == 'upper' : t[0] = Upper(t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif   t[1] == 'len' : t[0] = Len(t[3], t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+
 
 def p_tipo(t):
     '''tipo     : INT
@@ -305,10 +373,19 @@ def p_tipo(t):
     elif t[1] == 'str'   : Value('0',False, typeExpression.STRING)
     elif t[1] == 'None'  : Value('0',False, typeExpression.NULL)
 
+def p_statement(t):
+    'statement  : l_instruccion'
+    t[0] = Statement(t[1],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))    
 
-def p_exp_list_instr(t):
-    '''exp_list         : exp_list COMA expression
-                        | expression'''
+
+def p_expression_list(t):
+    '''exp_list : exp_list COMA expression
+                | expression'''
+    if(len(t) == 4):
+        t[1].append(t[3])
+        t[0] = t[1]
+    elif(len(t) == 2):
+        t[0] = [t[1]]  
 #------------------- Fin de ------------
 
 def p_error(t):

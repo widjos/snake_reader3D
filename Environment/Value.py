@@ -1,4 +1,5 @@
 from Enum.typeExpression import typeExpression
+from Generator.Generator import Generator
 
 class Value:
     def __init__(self,  value:str , isTemp: bool, type: typeExpression) -> None:
@@ -9,4 +10,5 @@ class Value:
         self.falseLabel = ""
 
     def getValue(self):
-        return self.value    
+        return self.value
+ 
