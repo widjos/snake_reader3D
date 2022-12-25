@@ -1,2 +1,2 @@
 # snake_reader3D
-Generator for 3D Code for C language 
+Generator Golang 3D Code for Python 
