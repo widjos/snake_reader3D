@@ -18,7 +18,10 @@ class Declaration(Instruction):
         self.exp.generator = self.generator
         newValue: Value = self.exp.compile(environment)
         self.type = newValue.type
-        tempVar: Symbol = environment.saveVariable(self.id , self.type)
+        tempVar:Symbol = environment.getVariable(self.id)
+
+        if tempVar is None:
+            tempVar = environment.saveVariable(self.id , self.type)
 
 
         if self.type != typeExpression.BOOL: 

@@ -18,17 +18,24 @@ class While(Instruction):
         self.condition.generator = self.generator
         self.block.generator = self.generator
 
-        #Label que engloba el codigo  del while 
-        newLabel = self.generator.newLabel()
-        self.generator.addLabel(newLabel)
-
+   
+        continueLbl = self.generator.newLabel()
+        self.generator.addLabel(continueLbl)
         valueCondition = self.condition.compile(environment)
-
+        newEnv = Environment(environment)
         if(valueCondition.type == typeExpression.BOOL):
+            newEnv.breakLbl = valueCondition.falseLabel
+            newEnv.continueLbl = continueLbl
             self.generator.addLabel(valueCondition.trueLabel)
-            self.block.compile(environment)
-            self.generator.addGoto(newLabel)
+            self.block.compile(newEnv)
+            self.generator.addGoto(continueLbl)
             self.generator.addLabel(valueCondition.falseLabel)
         else:
             print("SEMANTIC ERROR  not a booleand type inside a  if condition")   
-
+            errorList.append(
+                    {
+                        "tipo":"Error Semantico", 
+                        "descripcion" : f'Condicion del While no es booleana' , 
+                        "fila":  self.row , 
+                        "columna": self.column 
+                    })

@@ -158,6 +158,8 @@ from Expression.Relational.NotEqual import NotEqual
 from Generator.Generator import Generator
 from Enum.typeExpression import typeExpression
 from Expression.Primitive.NumberVal import NumberVal
+from Instruction.Control.Break import Break
+from Instruction.Control.Continue import Continue
 from Instruction.Cycles.While import While
 from Instruction.Declaration import Declaration
 from Instruction.Natives.Int import Len
@@ -230,6 +232,8 @@ def p_instruccion(t):
                     | asignacion LINEANUEVA
                     | declaracion LINEANUEVA
                     | while LINEANUEVA
+                    | stBreak LINEANUEVA
+                    | stContinue LINEANUEVA
                     | ifState LINEANUEVA
                     | nativas LINEANUEVA
     ''' 
@@ -240,8 +244,16 @@ def p_println(t):
     t[0] = Println(t[3])
 
 def p_while(t):
-    'while : WHILE expression l_instruccion'
-    t[0] = While(t[2], t[3])
+    'while : WHILE expression DOSPT statement END'
+    t[0] = While(t[2], t[4])
+
+def p_continue(t):
+    'stContinue : CONTINUE'
+    t[0] = Continue(t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+def p_break(t):
+    'stBreak : BREAK'
+    t[0] = Break(t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
 
 def p_if(t):
     '''ifState : IF expression DOSPT statement  END
