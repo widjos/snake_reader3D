@@ -14,7 +14,7 @@ class Declaration(Instruction):
 
 
     def compile(self, environment: Environment) -> Value:
-
+        
         self.exp.generator = self.generator
         newValue: Value = self.exp.compile(environment)
         self.type = newValue.type

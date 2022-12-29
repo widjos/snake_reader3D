@@ -43,13 +43,13 @@ class GThan(Expression):
                 errorList.append(
                     {
                         "tipo":"Error Semantico", 
-                        "descripcion" : f'El tipo de dato {rightVal.type} no es valido para realizar >' , 
+                        "descripcion" : f'El tipo de dato {leftVal.type} no es valido para realizar >' , 
                         "fila":  self.row , 
                         "columna": self.column 
                     })                
-                return Value(False,False,typeExpression.BOOL)  
+                return Value("",False,typeExpression.INT)  
         else:
-            print("Error en EQUAL")
+            print("Error en resta")
             errorList.append(
                     {
                         "tipo":"Error Semantico", 
@@ -57,4 +57,4 @@ class GThan(Expression):
                         "fila":  self.row , 
                         "columna": self.column 
                     })                
-            return Value(False,False,typeExpression.BOOL)        
+            return Value(False,False,typeExpression.INT)        

@@ -20,7 +20,7 @@ class Println(Instruction):
         elif tempValue.type == typeExpression.CHAR:
            self.generator.addPrintf("c",f' {tempValue.getValue()}')           
         elif tempValue.type == typeExpression.FLOAT:
-            self.generator.addPrintf("f",f'float64({tempValue.getValue()})')
+            self.generator.addPrintFloat(tempValue.getValue())
         elif tempValue.type == typeExpression.BOOL:
             newLabel = self.generator.newLabel()
             self.generator.addLabel(tempValue.trueLabel)

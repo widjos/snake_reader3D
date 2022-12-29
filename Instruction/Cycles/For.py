@@ -3,6 +3,7 @@ from  Abstract.Instruction import Instruction
 from Environment.Environment import Environment
 from Enum.typeExpression import typeExpression
 from Expression.Primitive.Literal import Literal
+from Expression.Primitive.NumberVal import NumberVal
 from Instruction.Declaration import Declaration
 from Environment.Contexto import errorList
 
@@ -86,9 +87,9 @@ class For(Instruction):
                 newEnv.breakLbl = endLbl
                 newEnv.continueLbl = continueLbl
                 self.generator.addGetHeap(moveTemp,puntero)
-                litTemp1 = Literal(tipo,moveTemp,self.row,self.column)
+                litTemp1 = NumberVal(tipo,moveTemp,self.row,self.column)
                 litTemp1.generator = self.generator
-                declaration = Declaration(litTemp1,self.varTemp,self.row,self.column)
+                declaration = Declaration(self.varTemp,litTemp1,litTemp1.type)
                 declaration.generator = self.generator
                 declaration.compile(newEnv)
                 self.generator.addExpression(puntero,puntero,'1','+')

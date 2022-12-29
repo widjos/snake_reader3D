@@ -24,7 +24,7 @@ class Equal(Expression):
         if leftVal.type == typeExpression.INT or leftVal.type == typeExpression.FLOAT:
 
             if rightVal.type == typeExpression.INT or rightVal.type == typeExpression.FLOAT:
-                newValue = Value("", False, typeExpression.BOOL)
+                newValue = Value("", False, typeExpression.INT)
                 
                 if self.trueLabel == "":
                     self.trueLabel = self.generator.newLabel()
@@ -39,7 +39,7 @@ class Equal(Expression):
                 newValue.falseLabel = self.falseLabel
                 return newValue
             else:
-                print("Error en resta")
+                print("Error en igual der")
                 errorList.append(
                     {
                         "tipo":"Error Semantico", 
@@ -47,9 +47,9 @@ class Equal(Expression):
                         "fila":  self.row , 
                         "columna": self.column 
                     })                
-                return Value(False,False,typeExpression.BOOL)  
+                return Value('',False,typeExpression.INT)  
         else:
-            print("Error en resta")
+            print("Error en igual iz")
             errorList.append(
                     {
                         "tipo":"Error Semantico", 
@@ -57,5 +57,5 @@ class Equal(Expression):
                         "fila":  self.row , 
                         "columna": self.column 
                     })                
-            return Value(False,False,typeExpression.BOOL)  
+            #return Value(False,False,typeExpression.BOOL)  
 
