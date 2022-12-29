@@ -16,7 +16,9 @@ class Println(Instruction):
         
             
         if tempValue.type == typeExpression.INT:
-           self.generator.addPrintf("d",f' int64({tempValue.getValue()})')        
+           self.generator.addPrintf("d",f' int64({tempValue.getValue()})')
+        elif tempValue.type == typeExpression.CHAR:
+           self.generator.addPrintf("c",f' {tempValue.getValue()}')           
         elif tempValue.type == typeExpression.FLOAT:
             self.generator.addPrintf("f",f'float64({tempValue.getValue()})')
         elif tempValue.type == typeExpression.BOOL:

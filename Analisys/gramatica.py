@@ -1,8 +1,7 @@
 # ------------------------------ SCANNER ------------------------------
 
 reservadas = {
-    'println' : 'PRINTLN',
-    'print' : 'PRINT',
+    'print' : 'PRINTLN',
     'while' : 'WHILE',
     'for'   : 'FOR',
     "if"    : "IF",
@@ -27,10 +26,11 @@ reservadas = {
     "or"        : "OR",
     "and"       : "AND",
     "not"       : "NOT",
-    "end"       : "END"
+    "end"       : "END" 
 }
 
 tokens = [
+    'RTFUNC',
     'LINEANUEVA',
     'DOSPT',
     'PUNTO',
@@ -66,6 +66,7 @@ tokens = [
     'ID',
 ] + list(reservadas.values())
 
+t_RTFUNC = r'->'
 t_LINEANUEVA = r'\n'
 t_DOSPT  = r':'
 t_PUNTO = r'\.'
@@ -148,6 +149,7 @@ def t_error(t):
 from Environment.Value import Value
 from Expression.Arithmetic.Module import Module
 from Expression.Arithmetic.Power import Power
+from Expression.Call.FunCall import FunCall
 from Expression.Primitive.Literal import Literal
 from Expression.Primitive.VariableCall import VariableCall
 from Expression.Relational.GEThan import GEqualThan
@@ -160,8 +162,12 @@ from Enum.typeExpression import typeExpression
 from Expression.Primitive.NumberVal import NumberVal
 from Instruction.Control.Break import Break
 from Instruction.Control.Continue import Continue
+from Instruction.Cycles.For import For
 from Instruction.Cycles.While import While
 from Instruction.Declaration import Declaration
+from Instruction.Function.Function import Function
+from Instruction.Function.Param import Param
+from Instruction.Function.Return import Return
 from Instruction.Natives.Int import Len
 from Instruction.Natives.Lower import Lower
 from Instruction.Natives.Upper import Upper
@@ -174,6 +180,13 @@ from Expression.Arithmetic.Div import Div
 from Expression.Relational.Equal import Equal
 from Expression.Logic.Logic import Logic
 from Instruction.Control.If import If
+from Expression.Structs.CreateStruct import CreateStruct 
+from Expression.Structs.AssignAccess import AssignAccess 
+from Expression.Structs.DeclareStruct import DeclareStruct 
+from Expression.Structs.StructAttr import StructAttribute
+from Environment.Contexto import errorList 
+from Environment.Contexto import simbolos
+
 
 import ply.lex as lex
 
@@ -202,7 +215,6 @@ def p_inicio(t):
     for ins in t[1]:
         ins.generator = generator
         ins.compile(globalEnv)
-
     t[0] = generator.getCode()     
 
 def p_lista_instruccion(t):
@@ -226,26 +238,60 @@ def p_lista_instruccion(t):
 #                    | continue LINEANUEVA
 #                    | if LINEANUEVA 
 #                    | for LINEANUEVA
+   #| createStruct LINEANUEVA
 
 def p_instruccion(t):
     ''' instruccion : printl LINEANUEVA
                     | asignacion LINEANUEVA
                     | declaracion LINEANUEVA
+                    | declareFunc LINEANUEVA
                     | while LINEANUEVA
+                    | for LINEANUEVA
                     | stBreak LINEANUEVA
                     | stContinue LINEANUEVA
                     | ifState LINEANUEVA
                     | nativas LINEANUEVA
+                    | returnState LINEANUEVA
+                    | functionCall LINEANUEVA   
+
+                    
     ''' 
     t[0] = t[1]
+
+  
 
 def p_println(t):
     '''printl : PRINTLN PARIZQ expression PARDER'''
     t[0] = Println(t[3])
 
+def p_functionCall(t):
+    '''functionCall : ID PARIZQ PARDER
+                    | ID PARIZQ exp_list PARDER
+    '''
+    if len(t) == 4:
+        t[0] = FunCall(t[1],[],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    else:
+        t[0] = FunCall(t[1],t[3],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+def p_declareFunc(t):
+    '''declareFunc : DEF ID PARIZQ PARDER DOSPT statement END                   
+                   | DEF ID PARIZQ  decParams PARDER DOSPT statement END
+                   | DEF ID PARIZQ  decParams PARDER RTFUNC tipo DOSPT  statement END
+                   | DEF ID PARIZQ  PARDER  RTFUNC tipo DOSPT statement END
+    '''
+    if len(t) == 8: t[0] = Function(t[2],[],typeExpression.NULL,t[6],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+    elif len(t) == 9 : t[0] = Function(t[2],t[4], typeExpression.NULL, t[7],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))    
+    elif len(t) == 11 : t[0] = Function(t[2],t[4], t[7], t[9],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))    
+    elif len(t) == 10 : t[0] = Function(t[2],[], t[6], t[8],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))    
+
 def p_while(t):
     'while : WHILE expression DOSPT statement END'
     t[0] = While(t[2], t[4])
+
+def p_for(t):
+    '''for :   FOR ID IN expression  DOSPT statement END
+    '''
+    t[0] = For(t[2],t[4],t[6],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
 
 def p_continue(t):
     'stContinue : CONTINUE'
@@ -254,6 +300,15 @@ def p_continue(t):
 def p_break(t):
     'stBreak : BREAK'
     t[0] = Break(t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))
+
+def p_return(t):
+    '''returnState : RETURN
+                   | RETURN expression 
+    '''
+    if len(t) == 2:
+        t[0] = Return(None,t.lineno(1), t.lexpos(0))
+    else:
+        t[0] = Return(t[2],t.lineno(1), t.lexpos(0))  
 
 def p_if(t):
     '''ifState : IF expression DOSPT statement  END
@@ -280,6 +335,7 @@ def p_elseif_list(t):
         t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer),t[5])   
     elif len(t) == 8:
         t[0] = If(t[2],t[4],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer),t[7])   
+
 
 
 
@@ -340,13 +396,16 @@ def p_expression_array(t):
     t[0] = Literal(typeExpression.ARRAY,t[2], t.lexer.lineno, find_column(t.lexer.lexdata,t.lexer))
 
 def p_expression_nat(t):
-    '''expression : nativas'''
+    '''expression : nativas
+                  | functionCall'''
     t[0] = t[1]    
     
 
 def p_expression_id(t):
     'expression : ID'
-    t[0] = VariableCall(t[1])     
+    t[0] = VariableCall(t[1])
+
+     
 
           
 
@@ -379,11 +438,11 @@ def p_tipo(t):
                 | STR
                 | NONE
     '''
-    if   t[1] == 'int'   : Value('0', False, typeExpression.INT)
-    elif t[1] == 'float' : Value('0',False, typeExpression.FLOAT)
-    elif t[1] == 'bool'  : Value('0',False, typeExpression.BOOL)
-    elif t[1] == 'str'   : Value('0',False, typeExpression.STRING)
-    elif t[1] == 'None'  : Value('0',False, typeExpression.NULL)
+    if   t[1] == 'int'   : t[0] = typeExpression.INT
+    elif t[1] == 'float' : t[0] = typeExpression.FLOAT
+    elif t[1] == 'bool'  : t[0] = typeExpression.BOOL
+    elif t[1] == 'str'   : t[0] = typeExpression.STRING
+    elif t[1] == 'None'  : t[0] = typeExpression.NULL
 
 def p_statement(t):
     'statement  : l_instruccion'
@@ -398,10 +457,37 @@ def p_expression_list(t):
         t[0] = t[1]
     elif(len(t) == 2):
         t[0] = [t[1]]  
+
+
+def p_dec_params(t):
+    '''decParams : decParams COMA ID DOSPT tipo
+                 | decParams COMA ID DOSPT ID   
+                 | decParams COMA ID
+                 | ID DOSPT tipo
+                 | ID DOSPT ID
+                 | ID
+    '''
+    if len(t) == 4:
+        if t.slice[2].type == 'COMA':
+            t[1].append(Param(t[3],typeExpression.ARRAY,t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer)))
+            t[0] = t[1]
+        elif t.slice[3].type == 'ID':
+            t[0] = [Param(t[1], typeExpression.STRUCT,t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))]
+        else:
+             t[0] = [Param(t[1], t[3],t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))]    
+    elif len(t):
+        t[0] = [Param(t[1],typeExpression.ARRAY,t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer))]
+    else: 
+        if t.slice[5].type == 'ID':
+            t[1].append(Param(t[1], typeExpression.STRUCT,t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer)))
+            t[0] = t[1]
+        else:
+            t[1].append(Param(t[1], t[5].STRUCT,t.lexer.lineno,find_column(t.lexer.lexdata,t.lexer)))    
+            t[0] = t[1]
 #------------------- Fin de ------------
 
 def p_error(t):
-    if not t:
+    if t is None:
         print("End of File!")
         return
 
@@ -413,6 +499,14 @@ def p_error(t):
             break
     parser.restart()    
     print("====> Error sintáctico en '%s'" % t.value)
+    errorList.append(
+                    {
+                        "tipo":"Error Sintactico", 
+                        "descripcion" : f'El tipo de dato {t.value} no se esperaba ' , 
+                        "fila":  t.lexer.lineno , 
+                        "columna": 0 
+                    })
+    print(f'{t.lexer.lineno}')
 
 
 import ply.yacc as yacc

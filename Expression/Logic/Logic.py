@@ -63,7 +63,7 @@ class Logic(Expression):
             })
             return
         self.generator.addComment('Finalizo la expresion logica')
-        ret = Value(None, False, typeExpression.BOOL)
+        ret = Value(lblAndOr, False, typeExpression.BOOL)
         ret.trueLabel = self.trueLabel
         ret.falseLabel = self.falseLabel
         return ret

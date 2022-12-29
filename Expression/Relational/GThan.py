@@ -2,6 +2,7 @@ from Abstract.Expression import Expression
 from Enum.typeExpression import typeExpression
 from Environment.Environment import Environment
 from Environment.Value import Value
+from Environment.Contexto import errorList
 
 class GThan(Expression):
 
@@ -37,3 +38,23 @@ class GThan(Expression):
                 newValue.trueLabel = self.trueLabel
                 newValue.falseLabel = self.falseLabel
                 return newValue
+            else:
+                print("Error en resta")
+                errorList.append(
+                    {
+                        "tipo":"Error Semantico", 
+                        "descripcion" : f'El tipo de dato {rightVal.type} no es valido para realizar >' , 
+                        "fila":  self.row , 
+                        "columna": self.column 
+                    })                
+                return Value(False,False,typeExpression.BOOL)  
+        else:
+            print("Error en EQUAL")
+            errorList.append(
+                    {
+                        "tipo":"Error Semantico", 
+                        "descripcion" : f'El tipo de dato {leftVal.type} no es valido para realizar >' , 
+                        "fila":  self.row , 
+                        "columna": self.column 
+                    })                
+            return Value(False,False,typeExpression.BOOL)        

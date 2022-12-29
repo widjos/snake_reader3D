@@ -14,15 +14,15 @@ class VariableCall(Expression):
     def compile(self, environement: Environment) -> Value:
         #Se obtiene el simbolo del entorno 
         retSym: Symbol = environement.getVariable(self.id)
+        if retSym is None:
+            print("--Error la variable no existe")
         newTemp = self.generator.newTemp()
-
-        self.generator.addGetStack(newTemp, str(retSym.position))
+        tempPosition = retSym.position
+        self.generator.addGetStack(newTemp, str(tempPosition))
 
         if retSym.type != typeExpression.BOOL:
             return Value(newTemp, True, retSym.type)
         else:
-            val = Value("", False, typeExpression.BOOL)
-
             if self.trueLabel == "" :
                 self.trueLabel = self.generator.newLabel()
 
@@ -31,7 +31,7 @@ class VariableCall(Expression):
 
             self.generator.addIf(newTemp, "1", "==", self.trueLabel)
             self.generator.addGoto(self.falseLabel)
-
+            val = Value(None, False, typeExpression.BOOL)
             val.trueLabel = self.trueLabel
             val.falseLabel = self.falseLabel
 

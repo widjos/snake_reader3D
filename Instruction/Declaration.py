@@ -18,10 +18,14 @@ class Declaration(Instruction):
         self.exp.generator = self.generator
         newValue: Value = self.exp.compile(environment)
         self.type = newValue.type
-        tempVar:Symbol = environment.getVariable(self.id)
+        #tempVar:Symbol = environment.getVariable(self.id)
 
-        if tempVar is None:
-            tempVar = environment.saveVariable(self.id , self.type)
+       
+        tempVar = environment.saveVariable(self.id , newValue.type,
+                  (newValue.type == typeExpression.STRING or 
+                  newValue.type == typeExpression.ARRAY or
+                  newValue.type == typeExpression.STRUCT), 
+                  newValue.structType)          
 
 
         if self.type != typeExpression.BOOL: 

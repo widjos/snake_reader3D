@@ -3,6 +3,7 @@ from  Abstract.Instruction import Instruction
 from Environment.Environment import Environment
 from Environment.Value import Value
 from Enum.typeExpression import typeExpression
+from Environment.Contexto import errorList
 
 
 

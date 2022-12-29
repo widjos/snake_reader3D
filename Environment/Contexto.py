@@ -1,1 +1,2 @@
 errorList = []
+simbolos = []

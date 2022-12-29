@@ -2,7 +2,9 @@
 from Environment.Environment import Environment
 
 class Generator:
-
+    heap = [0 for i in range(3010199)]
+    stack = [0 for i in range(3010199)]
+    dict_temp = {"H": 0, "P": 0, '': 0}
     def __init__(self) -> None:
         self.generator = None
         self.temporal = 0
@@ -18,6 +20,20 @@ class Generator:
         self.toUpper = False
         self.toLower = False
 
+    def cleanAll(self):
+        self.generator = None
+        self.temporal = 0
+        self.label = 0
+        self.code = []
+        self.natives = []
+        self.functions = []
+        self.tempList = []
+        self.printString = False
+        self.printArray = False
+        self.inNatives = False
+        self.inFunction = False
+        self.toUpper = False
+        self.toLower = False
 
     def getUsedTemps(self) -> str:
         return ",".join(self.tempList)
@@ -37,12 +53,14 @@ class Generator:
             tempCode = tempCode + "var " + self.getUsedTemps() +" float64"+ "\n\n"
         
         tempCode += '\n'.join(self.natives)    
+        tempCode += '\n'.join(self.functions)    
         tempCode += 'func main(){\n\n'
         tempCode += '\n'.join(self.code)
         tempCode += '\t\t\nreturn\n\n}'
         return tempCode    
 
     def newTemp(self) -> str:
+        Generator.dict_temp[f't{self.temporal}'] = 0
         temp = "t" + str(self.temporal)
         self.temporal += 1
 
@@ -119,12 +137,30 @@ class Generator:
         self.writeCode(f'     fmt.Printf(\"%c\", 10)')
 
     def addGetHeap(self, tarjet:str ,  index: str):
-        self.writeCode(f'     {tarjet} = HEAP[ int64({index})]')
+    #    if index in Generator.dict_temp.keys():
+    #        Generator.dict_temp[tarjet] = Generator.heap[int(
+    #            Generator.dict_temp[index])]
+    #    else:
+    #        Generator.dict_temp[tarjet] = Generator.heap[int(index)]
+            self.writeCode(f'     {tarjet} = HEAP[ int64({index})]')
 
     def addGetStack(self, tarjet:str , index:str):
-        self.writeCode(f'     {tarjet} = STACK[int64({index})]')
+    #    if index in Generator.dict_temp.keys():
+    #        Generator.dict_temp[tarjet] = Generator.stack[int(
+    #            Generator.dict_temp[index])]
+    #    else:
+    #        Generator.dict_temp[tarjet] = Generator.stack[int(index)]
+            self.writeCode(f'     {tarjet} = STACK[int64({index})]')
 
     def addSetStack(self, index:str, value:str):
+    #    if index in Generator.dict_temp.keys() and value in Generator.dict_temp.keys():
+    #        Generator.stack[int(Generator.dict_temp[index])] = Generator.dict_temp[value]
+    #    elif index in Generator.dict_temp.keys():
+    #        Generator.stack[int(Generator.dict_temp[index])] = float(value)
+    #    elif value in Generator.dict_temp.keys():
+    #        Generator.stack[index] = Generator.dict_temp[value]
+    #    else:
+    #        Generator.stack[index] = (float(value))    
         self.writeCode(f'     STACK[int64({index})] = {value}')
 
     def addNextStack(self, index:str):
@@ -134,9 +170,18 @@ class Generator:
         self.writeCode(f'     P = P - {index}')
                 
     def addSetHeap(self, index:str, value:str):
+    #    if index in Generator.dict_temp.keys() and value in Generator.dict_temp.keys():
+    #        Generator.heap[int(Generator.dict_temp[index])] = Generator.dict_temp[value]
+    #    elif index in Generator.dict_temp.keys():
+    #        Generator.heap[int(Generator.dict_temp[index])] = float(value)
+    #    elif value in Generator.dict_temp.keys():
+    #        Generator.heap[index] = Generator.dict_temp[value]
+    #    else:
+    #        Generator.heap[index] = (float(value))   
         self.writeCode(f'     HEAP[int64({index})] = {value}')                 
 
     def addNextHeap(self):
+        Generator.dict_temp["H"] = Generator.dict_temp["H"]+1
         self.writeCode('      H = H + 1')
 
     def callFunc(self, name:str):
@@ -144,13 +189,13 @@ class Generator:
 
     #Funciones para crear
     def addBeginFunction(self, id:str):
-        if not self.inNatives:
+        if (self.inNatives == False):
             self.inFunction = True
-        self.natives.append(f'func {id}(){{')
+        self.writeCode(f'func {id}(){{')
 
     def addEndFunction(self):
-        self.natives.append(f'\t\treturn;\n}}\n\n')
-        if not self.inNatives:
+        self.writeCode(f'\t\treturn;\n}}\n\n')
+        if (self.inNatives == False):
             self.inFunction = False        
 
 

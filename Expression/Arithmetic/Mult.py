@@ -26,11 +26,11 @@ class  Mult(Expression):
         newTemp = self.generator.newTemp()
 
         if leftValue.type == typeExpression.INT:
-            if rightValue.type == typeExpression.INT or rightValue.type == typeExpression.FLOAT:
+            if rightValue.type == typeExpression.INT or rightValue.type == typeExpression.FLOAT :
                 self.generator.addExpression(newTemp, leftValue.getValue() , rightValue.getValue(), "*")
-                return Value(newTemp, True, rightValue.type)
+                return Value(newTemp, True, leftValue.type)
             else:
-                print("Error en suma")
+                print("Error en mullt")
                 errorList.append(
                     {
                         "tipo":"Error Semantico", 
@@ -44,7 +44,7 @@ class  Mult(Expression):
                 self.generator.addExpression(newTemp,leftValue.getValue(),rightValue.getValue(),"*")
                 return Value(newTemp,True,typeExpression.FLOAT)
             else:
-                print("Error en resta")
+                print("Error en mult")
                 errorList.append(
                     {
                         "tipo":"Error Semantico", 
@@ -54,7 +54,7 @@ class  Mult(Expression):
                     })                
                 return Value("0",False,typeExpression.INT)
         else:
-            print("Error suma")
+            print("Error mult")
             errorList.append(
                     {
                         "tipo":"Error Semantico", 

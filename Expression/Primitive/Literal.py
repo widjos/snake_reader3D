@@ -35,7 +35,9 @@ class Literal(Expression):
             newValue.trueLabel = self.trueLabel
             newValue.falseLabel = self.falseLabel
             return newValue
-        
+        elif self.type == typeExpression.CHAR:
+            return Value(str(self.value),False,self.type)
+
         elif self.type == typeExpression.STRING:
             retTemp = self.generator.newTemp()
             self.generator.addExpression(retTemp, 'H', '', '')

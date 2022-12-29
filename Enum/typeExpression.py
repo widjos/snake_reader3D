@@ -9,6 +9,7 @@ class typeExpression(enum.Enum):
     ARRAY = 6
     STRUCT = 7
     UNDEFINED = 8
+    CHAR =12
 
     RETURN_ST = 9 
     BREAK_ST = 10
